@@ -26,6 +26,10 @@ const initialForm: LoginFormData = {
     password: '',
 };
 
+interface LoginFormProps {
+    onSubmit?: (data: LoginFormData) => void;
+}
+
 function validateLoginForm(values: LoginFormData): LoginFormErrors {
     const errors: LoginFormErrors = {};
 
@@ -44,7 +48,7 @@ function validateLoginForm(values: LoginFormData): LoginFormErrors {
     return errors;
 }
 
-export default function LoginForm() {
+export default function LoginForm({ onSubmit }: LoginFormProps) {
     const [form, setForm] = useState<LoginFormData>(initialForm);
     const [errors, setErrors] = useState<LoginFormErrors>({});
     const [submitted, setSubmitted] = useState(false);
@@ -65,19 +69,21 @@ export default function LoginForm() {
         setErrors(validationErrors);
 
         if (Object.keys(validationErrors).length === 0) {
-            console.log('Login submitted (UI only):', form);
+            onSubmit?.(form);
         }
     }
 
     return (
-        <Card className="w-full max-w-md border-border/60 shadow-lg">
+        <Card className="w-full border-white/10 bg-slate-900/70 shadow-2xl shadow-black/20 backdrop-blur-xl">
             <CardHeader className="space-y-4 text-center">
-                <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <GraduationCap className="h-7 w-7" />
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30">
+                    <GraduationCap className="h-8 w-8" />
                 </div>
                 <div className="space-y-1.5">
-                    <CardTitle>Welcome back</CardTitle>
-                    <CardDescription>Sign in to manage student records</CardDescription>
+                    <CardTitle className="text-2xl text-white">Welcome back</CardTitle>
+                    <CardDescription className="text-slate-400">
+                        Sign in to manage student records
+                    </CardDescription>
                 </div>
             </CardHeader>
 
@@ -117,7 +123,11 @@ export default function LoginForm() {
                         {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
                     </div>
 
-                    <Button type="submit" className="w-full" size="lg">
+                    <Button
+                        type="submit"
+                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/25 hover:from-blue-500 hover:to-indigo-500"
+                        size="lg"
+                    >
                         <LogIn className="h-4 w-4" />
                         Login
                     </Button>
