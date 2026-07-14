@@ -1,9 +1,15 @@
-import LoginForm from '@/components/LoginForm';
+import LoginPage from '@/pages/LoginPage';
+import RegisterPage from '@/pages/RegisterPage';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 
 export default function App() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-100">
-      <LoginForm />
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
