@@ -40,6 +40,7 @@ type StudentFormErrors = Partial<Record<keyof StudentFormData, string>>;
 interface StudentFormProps {
   initialValues?: Partial<StudentFormData>;
   submitLabel?: string;
+  showHeader?: boolean;
   onSubmit?: (data: StudentFormData) => void;
   onReset?: () => void;
 }
@@ -111,6 +112,7 @@ function validateStudentForm(values: StudentFormData): StudentFormErrors {
 export default function StudentForm({
   initialValues,
   submitLabel = 'Save Student',
+  showHeader = true,
   onSubmit,
   onReset,
 }: StudentFormProps) {
@@ -125,7 +127,7 @@ export default function StudentForm({
   }, [initialValues]);
 
   const fieldClassName =
-    'flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+    'flex w-full rounded-md border border-input bg-slate-950/40 px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
   function handleChange(field: keyof StudentFormData, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -155,18 +157,22 @@ export default function StudentForm({
   }
 
   return (
-    <Card className="w-full max-w-3xl border-border/60 shadow-lg">
-      <CardHeader className="space-y-4 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <UserRound className="h-7 w-7" />
-        </div>
-        <div className="space-y-1.5">
-          <CardTitle>Student Registration</CardTitle>
-          <CardDescription>Enter student details to create or update a record</CardDescription>
-        </div>
-      </CardHeader>
+    <Card className="w-full border-white/10 bg-slate-900/70 shadow-xl shadow-black/10 backdrop-blur-xl">
+      {showHeader && (
+        <CardHeader className="space-y-4 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30">
+            <UserRound className="h-8 w-8" />
+          </div>
+          <div className="space-y-1.5">
+            <CardTitle className="text-2xl text-white">Student Registration</CardTitle>
+            <CardDescription className="text-slate-400">
+              Enter student details to create or update a record
+            </CardDescription>
+          </div>
+        </CardHeader>
+      )}
 
-      <CardContent>
+      <CardContent className={showHeader ? undefined : 'pt-6'}>
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div className="space-y-2">
@@ -306,10 +312,19 @@ export default function StudentForm({
           </div>
 
           <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            <Button type="button" variant="outline" onClick={handleReset}>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 hover:text-white"
+              onClick={handleReset}
+            >
               Reset
             </Button>
-            <Button type="submit" size="lg">
+            <Button
+              type="submit"
+              size="lg"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/25 hover:from-blue-500 hover:to-indigo-500"
+            >
               <Save className="h-4 w-4" />
               {submitLabel}
             </Button>
