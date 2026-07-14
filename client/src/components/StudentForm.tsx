@@ -1,6 +1,7 @@
 import {
   BookOpen,
   CalendarDays,
+  Loader2,
   Lock,
   Mail,
   MapPin,
@@ -10,6 +11,8 @@ import {
   Users,
 } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,6 +24,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import api from '@/services/api';
+import { encryptFrontend } from '@/utils/crypto';
 
 type Gender = 'male' | 'female' | 'other' | '';
 
@@ -109,6 +114,32 @@ function validateStudentForm(values: StudentFormData): StudentFormErrors {
   return errors;
 }
 
+interface ApiResponse {
+  success: boolean;
+  message: string;
+}
+
+function encryptFormData(data: StudentFormData): Record<string, string> {
+  return {
+    fullName: encryptFrontend(data.fullName),
+    email: encryptFrontend(data.email),
+    phoneNumber: encryptFrontend(data.phoneNumber),
+    dateOfBirth: encryptFrontend(data.dateOfBirth),
+    gender: encryptFrontend(data.gender),
+    address: encryptFrontend(data.address),
+    courseEnrolled: encryptFrontend(data.courseEnrolled),
+    password: encryptFrontend(data.password),
+  };
+}
+
+function getApiErrorMessage(error: unknown, fallback: string): string {
+  if (axios.isAxiosError(error)) {
+    const message = (error.response?.data as ApiResponse | undefined)?.message;
+    return message ?? fallback;
+  }
+  return error instanceof Error ? error.message : fallback;
+}
+
 export default function StudentForm({
   initialValues,
   submitLabel = 'Save Student',
@@ -116,15 +147,60 @@ export default function StudentForm({
   onSubmit,
   onReset,
 }: StudentFormProps) {
+  const navigate = useNavigate();
+  const isRegistration = submitLabel === 'Register';
   const [form, setForm] = useState<StudentFormData>(() => toFormValues(initialValues));
   const [errors, setErrors] = useState<StudentFormErrors>({});
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
 
   useEffect(() => {
     setForm(toFormValues(initialValues));
     setErrors({});
     setSubmitted(false);
+    setApiError('');
   }, [initialValues]);
+
+  async function registerStudent(data: StudentFormData) {
+    setLoading(true);
+    setApiError('');
+
+    try {
+      await api.post<ApiResponse>('/register', encryptFormData(data));
+      navigate('/login');
+    } catch (error) {
+      setApiError(getApiErrorMessage(error, 'Registration failed'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitted(true);
+    setApiError('');
+
+    const validationErrors = validateStudentForm(form);
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length === 0) {
+      if (isRegistration) {
+        void registerStudent(form);
+        return;
+      }
+
+      onSubmit?.(form);
+    }
+  }
+
+  function handleReset() {
+    setForm(toFormValues(initialValues));
+    setErrors({});
+    setSubmitted(false);
+    setApiError('');
+    onReset?.();
+  }
 
   const fieldClassName =
     'flex w-full rounded-md border border-input bg-slate-950/40 px-3 py-2 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
@@ -135,25 +211,6 @@ export default function StudentForm({
     if (submitted) {
       setErrors(validateStudentForm({ ...form, [field]: value }));
     }
-  }
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitted(true);
-
-    const validationErrors = validateStudentForm(form);
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length === 0) {
-      onSubmit?.(form);
-    }
-  }
-
-  function handleReset() {
-    setForm(toFormValues(initialValues));
-    setErrors({});
-    setSubmitted(false);
-    onReset?.();
   }
 
   return (
@@ -173,6 +230,11 @@ export default function StudentForm({
       )}
 
       <CardContent className={showHeader ? undefined : 'pt-6'}>
+        {apiError && (
+          <p className="mb-5 rounded-lg border border-red-400/20 bg-red-400/10 px-4 py-3 text-sm text-red-200">
+            {apiError}
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
             <div className="space-y-2">
@@ -186,6 +248,7 @@ export default function StudentForm({
                   value={form.fullName}
                   onChange={(event) => handleChange('fullName', event.target.value)}
                   className="pl-10"
+                  disabled={loading}
                 />
               </div>
               {errors.fullName && <p className="text-sm text-red-600">{errors.fullName}</p>}
@@ -203,6 +266,7 @@ export default function StudentForm({
                   value={form.email}
                   onChange={(event) => handleChange('email', event.target.value)}
                   className="pl-10"
+                  disabled={loading}
                 />
               </div>
               {errors.email && <p className="text-sm text-red-600">{errors.email}</p>}
@@ -220,6 +284,7 @@ export default function StudentForm({
                   value={form.phoneNumber}
                   onChange={(event) => handleChange('phoneNumber', event.target.value)}
                   className="pl-10"
+                  disabled={loading}
                 />
               </div>
               {errors.phoneNumber && <p className="text-sm text-red-600">{errors.phoneNumber}</p>}
@@ -235,6 +300,7 @@ export default function StudentForm({
                   value={form.dateOfBirth}
                   onChange={(event) => handleChange('dateOfBirth', event.target.value)}
                   className="pl-10"
+                  disabled={loading}
                 />
               </div>
               {errors.dateOfBirth && <p className="text-sm text-red-600">{errors.dateOfBirth}</p>}
@@ -249,6 +315,7 @@ export default function StudentForm({
                   value={form.gender}
                   onChange={(event) => handleChange('gender', event.target.value)}
                   className={cn(fieldClassName, 'h-10 appearance-none pl-10')}
+                  disabled={loading}
                 >
                   <option value="">Select gender</option>
                   <option value="male">Male</option>
@@ -270,6 +337,7 @@ export default function StudentForm({
                   value={form.courseEnrolled}
                   onChange={(event) => handleChange('courseEnrolled', event.target.value)}
                   className="pl-10"
+                  disabled={loading}
                 />
               </div>
               {errors.courseEnrolled && (
@@ -289,6 +357,7 @@ export default function StudentForm({
                 value={form.address}
                 onChange={(event) => handleChange('address', event.target.value)}
                 className={cn(fieldClassName, 'min-h-24 resize-y pl-10 pt-2.5')}
+                disabled={loading}
               />
             </div>
             {errors.address && <p className="text-sm text-red-600">{errors.address}</p>}
@@ -306,6 +375,7 @@ export default function StudentForm({
                 value={form.password}
                 onChange={(event) => handleChange('password', event.target.value)}
                 className="pl-10"
+                disabled={loading}
               />
             </div>
             {errors.password && <p className="text-sm text-red-600">{errors.password}</p>}
@@ -317,16 +387,18 @@ export default function StudentForm({
               variant="outline"
               className="border-white/10 bg-white/5 text-slate-200 hover:bg-white/10 hover:text-white"
               onClick={handleReset}
+              disabled={loading}
             >
               Reset
             </Button>
             <Button
               type="submit"
               size="lg"
+              disabled={loading}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/25 hover:from-blue-500 hover:to-indigo-500"
             >
-              <Save className="h-4 w-4" />
-              {submitLabel}
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              {loading ? (isRegistration ? 'Registering...' : 'Saving...') : submitLabel}
             </Button>
           </div>
         </form>
