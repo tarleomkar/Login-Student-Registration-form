@@ -1,8 +1,5 @@
 import CryptoJS from 'crypto-js';
 
-/** Temporary test flag — set to true for real AES flow, false to send plain JSON from Postman */
-const USE_ENCRYPTION = true;
-
 /**
  * Reads an AES key from process.env (loaded via dotenv in server.ts).
  */
@@ -18,8 +15,6 @@ function getKey(envName: 'FRONTEND_AES_KEY' | 'BACKEND_AES_KEY'): string {
  * Encrypts plaintext with the frontend AES key (used before sending to client).
  */
 export function encryptFrontend(plainText: string): string {
-  if (!USE_ENCRYPTION) return plainText;
-
   try {
     if (typeof plainText !== 'string') {
       throw new Error('encryptFrontend expects a string');
@@ -35,8 +30,6 @@ export function encryptFrontend(plainText: string): string {
  * Decrypts ciphertext that was encrypted on the client with the frontend AES key.
  */
 export function decryptFrontend(cipherText: string): string {
-  if (!USE_ENCRYPTION) return cipherText;
-
   try {
     if (typeof cipherText !== 'string' || cipherText.trim() === '') {
       throw new Error('decryptFrontend expects a non-empty ciphertext string');
@@ -57,8 +50,6 @@ export function decryptFrontend(cipherText: string): string {
  * Encrypts plaintext with the backend AES key before persisting to MongoDB.
  */
 export function encryptBackend(plainText: string): string {
-  if (!USE_ENCRYPTION) return plainText;
-
   try {
     if (typeof plainText !== 'string') {
       throw new Error('encryptBackend expects a string');
@@ -74,8 +65,6 @@ export function encryptBackend(plainText: string): string {
  * Decrypts ciphertext stored in MongoDB using the backend AES key.
  */
 export function decryptBackend(cipherText: string): string {
-  if (!USE_ENCRYPTION) return cipherText;
-
   try {
     if (typeof cipherText !== 'string' || cipherText.trim() === '') {
       throw new Error('decryptBackend expects a non-empty ciphertext string');

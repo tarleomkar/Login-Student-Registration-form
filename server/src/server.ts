@@ -1,6 +1,12 @@
+import { webcrypto } from 'node:crypto';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import app from './app';
+
+// MongoDB driver needs globalThis.crypto (missing in some ts-node-dev contexts)
+if (!globalThis.crypto) {
+  globalThis.crypto = webcrypto as Crypto;
+}
 
 // Load .env first so AES keys and Mongo URI are available
 dotenv.config();
