@@ -21,6 +21,26 @@ A full-stack student registration and management app with **two-level AES encryp
   - Update student (password not required on edit)
   - Delete student (confirmation dialog)
 
+## Screenshots
+
+### Login
+![Login page](./docs/scrreenshots/login%20page.png)
+
+### Register
+![Register page](./docs/scrreenshots/regiter%20page.png)
+
+### Student List
+![Student list dashboard](./docs/scrreenshots/student%20list.png)
+
+### Add Student
+![Add student form](./docs/scrreenshots/add%20students.png)
+
+### Student Details
+![Student details popup](./docs/scrreenshots/student%20details%20popup.png)
+
+### Delete Confirmation
+![Delete student confirmation](./docs/scrreenshots/delete%20student%20popup.png)
+
 ## API Routes
 
 | Method | Route | Description |
@@ -87,6 +107,7 @@ cd Login-Student-Registration-form
 
 ```bash
 cd server
+cd src
 npm install
 cp .env.example .env
 ```
@@ -115,6 +136,7 @@ Open a new terminal:
 
 ```bash
 cd client
+cd src
 npm install
 cp .env.example .env
 ```
