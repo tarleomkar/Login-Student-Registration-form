@@ -141,7 +141,7 @@ export async function updateStudent(req: Request, res: Response): Promise<void> 
       gender: decryptFrontend(gender),
       address: decryptFrontend(address),
       courseEnrolled: decryptFrontend(courseEnrolled),
-      password: decryptFrontend(password),
+      password: password ? decryptFrontend(password) : '',
     };
 
     if (
@@ -151,8 +151,7 @@ export async function updateStudent(req: Request, res: Response): Promise<void> 
       !plain.dateOfBirth ||
       !plain.gender ||
       !plain.address ||
-      !plain.courseEnrolled ||
-      !plain.password
+      !plain.courseEnrolled
     ) {
       res.status(400).json({ success: false, message: 'All fields are required' });
       return;
@@ -168,23 +167,28 @@ export async function updateStudent(req: Request, res: Response): Promise<void> 
       return;
     }
 
-    if (plain.password.length < 8) {
+    if (plain.password && plain.password.length < 8) {
       res.status(400).json({ success: false, message: 'Password must be at least 8 characters' });
       return;
     }
 
+    const updatePayload: Record<string, string> = {
+      fullName: encryptBackend(plain.fullName),
+      email: encryptBackend(plain.email.toLowerCase()),
+      phoneNumber: encryptBackend(plain.phoneNumber),
+      dateOfBirth: encryptBackend(plain.dateOfBirth),
+      gender: encryptBackend(plain.gender.toLowerCase()),
+      address: encryptBackend(plain.address),
+      courseEnrolled: encryptBackend(plain.courseEnrolled),
+    };
+
+    if (plain.password) {
+      updatePayload.password = encryptBackend(plain.password);
+    }
+
     const updated = await Student.findByIdAndUpdate(
       id,
-      {
-        fullName: encryptBackend(plain.fullName),
-        email: encryptBackend(plain.email.toLowerCase()),
-        phoneNumber: encryptBackend(plain.phoneNumber),
-        dateOfBirth: encryptBackend(plain.dateOfBirth),
-        gender: encryptBackend(plain.gender.toLowerCase()),
-        address: encryptBackend(plain.address),
-        courseEnrolled: encryptBackend(plain.courseEnrolled),
-        password: encryptBackend(plain.password),
-      },
+      updatePayload,
       { new: true, runValidators: true },
     );
 
